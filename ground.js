@@ -9,10 +9,16 @@ class Ground {
     this.slopeChange = slopeChange
     this.elevation = elevation
     this.vertices = []
+    while (true) {
+
+      break
+    }
+    this.body = Matter.Bodies.fromVertices(0, 0, this.vertices, { isStatic: true })
   }
 
   show() {
-    
+    fill(this.col)
+    stroke(0)
   }
 }
   
