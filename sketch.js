@@ -3,27 +3,26 @@ let world
 let translation
 let ground
 let walkers
-let boxes
 let logOn
 
 // module aliases
 let Engine = Matter.Engine,
   World = Matter.World,
-  Bodies = Matter.Bodies;
+  Bodies = Matter.Bodies,
+  Vector = Matter.Vector;
 
 function setup() {
   createCanvas(1300, 800)
 
   engine = Engine.create()
 
-  // ground = new Ground(width*2, height+100)
+  ground = new Ground(height+100)
   translation = createVector(0,0)
 
-  boxes = []
   logOn = false
-  ground = Bodies.rectangle(400, height, width*2, 100, { isStatic: true })
+  // ground = Bodies.rectangle(400, height, width*2, 100, { isStatic: true })
   walkers = new Population(10)
-  World.add(engine.world, [ground])
+  // World.add(engine.world, [ground])
 
   Engine.run(engine)
 }
@@ -33,18 +32,14 @@ function draw() {
   push()
   translate(translation)
   
-  rectMode(CENTER)
-  fill(50)
-  rect(ground.position.x, ground.position.y, width*2, 100)
-  // for (let b of boxes) {
-  //   ellipse(b.position.x, b.position.y, 160)
+
+  // if (logOn) {
+  //   console.log(ground)
   // }
-  if (logOn) {
-    console.log(ground)
-  }
   walkers.show()
 
-  // ground.show()
+  ground.show()
+  walkers.show()
 
   pop()
 }
