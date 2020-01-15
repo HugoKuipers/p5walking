@@ -9,10 +9,6 @@ class Limb {
     }
   }
 
-  show() {
-    
-  }
-
   replicate(other, mutCha) {
     let mine = (random(2) > 1) ? this.chromB : this.chromA
     let theirs = (random(2) > 1) ? other.chromB : other.chromA
@@ -31,4 +27,3 @@ class Limb {
     return new Limb(mine, theirs, con)
   }
 }
-  

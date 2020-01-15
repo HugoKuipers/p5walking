@@ -1,6 +1,6 @@
 class Population {
   constructor(size, mutCha, newMutCha = mutCha, remMutCha = newMutCha, lifespan = 1000) {
-    this.startX = 200
+    this.startX = 250
     this.startY = 200
     this.radius = 40
     this.mutCha = mutCha
@@ -36,12 +36,12 @@ class Population {
 
     print('newdna', newDna)
     for (let w of this.walkers) {
-      World.composite.remove(w.body)
+      w.killSelf()
     }
     this.walkers = []
 
     for (let n of newDna) {
-      this.walkers.push(new Walker(this.startX, this.startY, this.radius, n, mutCha, newMutCha, remMutCha))
+      this.walkers.push(new Walker(this.startX, this.startY, this.radius, n, this.mutCha, this.newMutCha, this.remMutCha))
     }
 
     this.life = 0
