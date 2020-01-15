@@ -23,16 +23,13 @@ class Ground {
     this.vertices.push(Vector.create(this.leftEdge, this.upEdge))
     this.vertices.push(Vector.create(this.stepLen, this.upEdge))
 
-    this.body = Bodies.fromVertices(this.rightEdge/4, this.downEdge/1.5, this.vertices, { isStatic: true })
-    // this.body.position.y = this.body.vertices[0].y
-    // this.body = Matter.Bodies.fromVertices(0, 0, [Vector.create(100, 100), Vector.create(200, 100), Vector.create(200, 200), Vector.create(100, 200)], { isStatic: true })
+    this.body = Bodies.fromVertices(this.rightEdge / 4, this.downEdge / 1.5, this.vertices, { isStatic: true })
     World.add(engine.world, this.body)
-    console.log(this.body)
   }
 
   show() {
     fill(this.col)
-    stroke(0)
+    stroke(this.col)
     for (let part of this.body.parts) {
       if (part.id == 3) continue
       beginShape()

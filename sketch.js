@@ -3,7 +3,6 @@ let world
 let translation
 let ground
 let walkers
-let logOn
 
 // module aliases
 let Engine = Matter.Engine,
@@ -21,25 +20,24 @@ function setup() {
   ground = new Ground(height+100)
   translation = createVector(0,0)
 
-  logOn = false
-  // ground = Bodies.rectangle(400, height, width*2, 100, { isStatic: true })
-  walkers = new Population(10)
-  // World.add(engine.world, [ground])
+  walkers = new Population(10, 0.1, 0.1, 0.01, 100)
 
   Engine.run(engine)
 }
 
 function draw() {
   background(200,200,250)
+
+  walkers.life++
+  if (walkers.life == walkers.lifespan) {
+    walkers.repopulate()
+  }
+
+  // walkers.add(random(width), random(height))
+
   push()
   translate(translation)
   
-
-  // if (logOn) {
-  //   console.log(ground)
-  // }
-  walkers.show()
-
   ground.show()
   walkers.show()
 
@@ -52,5 +50,5 @@ function draw() {
 
 function mouseClicked() {
   walkers.add(mouseX, mouseY)
-  logOn = !logOn
+  walkers.evaluate()
 }
