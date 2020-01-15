@@ -12,7 +12,9 @@ let Engine = Matter.Engine,
   Vector = Matter.Vector;
 
 function setup() {
-  createCanvas(1300, 800)
+  createCanvas(1000, 600)
+  l = new Limb({name: 'haha', len: 'bla'}, {name: 'b', len: 'a'})
+  l.replicate(l, 0.1)
 
   engine = Engine.create()
 

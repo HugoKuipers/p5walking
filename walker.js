@@ -18,5 +18,19 @@ class Walker {
       l.show()
     }
   }
+
+  newLimb() {
+    let chromA = {}
+    let chromB = {}
+
+    for (let i = 0; i < 2; i++) {
+      let chrom = i == 0 ? chromA : chromB
+
+      chrom.len = random(1)
+      chrom.dir = random(1)
+    }
+
+    return new Limb(chromA, chromB)
+  }
 }
   
