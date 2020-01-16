@@ -12,14 +12,13 @@ export default class Entity {
 
   get body() {
       if(!this._body) {
-
           const mainBody = Bodies.rectangle(
             this._spawnX,
             this._spawnY,
             this._width,
             this._height
           );
-          mainBody.label = 'mainBody'
+          mainBody.label = 'entity'
           mainBody.self = this
       
           const limb = Bodies.rectangle(
@@ -29,7 +28,7 @@ export default class Entity {
             this.limbHeight,
             { render: mainBody.render }
           );
-          limb.label = 'limb'
+          limb.label = 'entity'
           limb.self = this
       
           this._body = Body.create({
@@ -48,10 +47,7 @@ export default class Entity {
   }
 
   jump() {
-    console.log('jumping!')
-    const limb = this._body
-    console.log(limb)
-    Body.applyForce(limb, limb.position, {
+    Body.applyForce(this._body, this._body.position, {
         x: 0,
         y: -0.5
     })

@@ -38,6 +38,7 @@ const render = Render.create({
     showAngleIndicator: DEBUG_MODE,
     showCollisions: DEBUG_MODE,
     showVelocity: DEBUG_MODE
+    // wireframes: DEBUG_MODE
     // showAxes: DEBUG_MODE,
     // showConvexHulls: DEBUG_MODE
   }
@@ -60,6 +61,7 @@ const render = Render.create({
 
 // create two boxes and a ground
 // const boxA = Bodies.rectangle(400, 200, 80, 80);
+// boxA.label = "boxie";
 // const boxB = Bodies.rectangle(450, 50, 80, 80);
 const ground = Bodies.rectangle(width / 2, height, width, 60, {
   isStatic: true
@@ -67,35 +69,48 @@ const ground = Bodies.rectangle(width / 2, height, width, 60, {
 
 // add all of the bodies to the world
 const entity = new Entity(200, 200, 200);
-console.log(entity.body);
 World.add(engine.world, [ground, entity.body]);
+
+const collidingEntities = [];
 
 // add events
 Events.on(engine, "collisionStart", event => {
   for (const pair of event.pairs) {
-    let body
-    if (pair.bodyA.label == "limb") body = pair.bodyA;
-    if (pair.bodyB.label == "limb") body = pair.bodyB;
-    body.self.jump()
+    // TODO :: what's bodyA and what's bodyB? Always top bottom?
+    if (pair.bodyA.label == "entity") {
+      console.log('A')
+      collidingEntities.push(pair.bodyA.self);
+    }
+    if (pair.bodyB.label == "entity") {
+      console.log('B')
+      collidingEntities.push(pair.bodyB.self);
+    }
   }
 });
 
+Events.on(engine, "beforeUpdate", () => {
+  for (const entity of collidingEntities) {
+    entity.jump();
+  }
+  collidingEntities.length = 0;
+});
+
 // add mouse control
-var mouse = Mouse.create(render.canvas),
-  mouseConstraint = MouseConstraint.create(engine, {
-    mouse,
-    constraint: {
-      stiffness: 0.2,
-      render: {
-        visible: false
-      }
-    }
-  });
+// var mouse = Mouse.create(render.canvas),
+//   mouseConstraint = MouseConstraint.create(engine, {
+//     mouse,
+//     constraint: {
+//       stiffness: 0.2,
+//       render: {
+//         visible: false
+//       }
+//     }
+//   });
 
-World.add(engine.world, mouseConstraint);
+// World.add(engine.world, mouseConstraint);
 
-// keep the mouse in sync with rendering
-render.mouse = mouse;
+// // keep the mouse in sync with rendering
+// render.mouse = mouse;
 
 // run the engine
 // Engine.run(engine);
