@@ -1,11 +1,8 @@
 import * as _ from "../lib/matter.js";
 
 import Entity from "./entity.js";
+import { DEBUG_MODE } from "./settings.js";
 
-const DEBUG_MODE = true;
-
-const width = window.innerWidth;
-const height = window.innerHeight;
 // module aliases
 const {
   Engine,
@@ -22,99 +19,112 @@ const {
   Events
 } = Matter;
 
-// create an engine
-const engine = Engine.create();
+class Universe {
+  /**
+   * The Big Bang of the universe
+   *
+   */
+  constructor() {
+    /**
+     * the entities that will do something the next update of the engine
+     * @private
+     */
+    this._entitiesThatWillDoSomething = [];
 
-// create a runner
-const runner = Runner.create();
+    /**
+     * _width is the width of the universe
+     * @type {Number}
+     * @private
+     */
+    this._width = window.innerWidth;
+    /**
+     * _height is the height of the universe
+     * @type {Number}
+     * @private
+     */
+    this._height = window.innerHeight;
 
-// create a renderer
-const render = Render.create({
-  element: document.body,
-  engine,
-  options: {
-    width,
-    height,
-    showAngleIndicator: DEBUG_MODE,
-    showCollisions: DEBUG_MODE,
-    showVelocity: DEBUG_MODE
-    // wireframes: DEBUG_MODE
-    // showAxes: DEBUG_MODE,
-    // showConvexHulls: DEBUG_MODE
+    this._universe = World;
+    this._engine = Engine.create();
+    this._runner = Runner.create();
+    this._render = Render.create({
+      element: document.body,
+      engine: this._engine,
+      options: {
+        width: this._width,
+        height: this._height,
+        showAngleIndicator: DEBUG_MODE,
+        showCollisions: DEBUG_MODE,
+        showVelocity: DEBUG_MODE
+        // wireframes: DEBUG_MODE
+        // showAxes: DEBUG_MODE,
+        // showConvexHulls: DEBUG_MODE
+      }
+    });
+
+    this.bang();
   }
-});
 
-// add bodies
-// const group = Body.nextGroup(true);
+  get width() {
+    if (this._width === window.innerWidth) return this._width;
+    this._width = window.innerWidth;
+    // TODO :: need to call resize function here or will it go automatically?
+    return this._width;
+  }
 
-// const ropeA = Composites.stack(100, 50, 10, 1, 10, 10, function(x, y) {
-//     return Bodies.rectangle(x, y, 50, 20, { collisionFilter: { group: group } });
-// });
+  get height() {
+    if (this._height === window.innerHeight) return this._height;
+    this._height = window.innerHeight;
+    // TODO :: need to call resize function here or will it go automatically?
+    return this._height;
+  }
 
-// Composites.chain(ropeA, 0.5, 0, -0.5, 0, { stiffness: 0.8, length: 2, render: { type: 'line' } });
-// Composite.add(ropeA, Constraint.create({
-//     bodyB: ropeA.bodies[0],
-//     pointB: { x: -25, y: 0 },
-//     pointA: { x: ropeA.bodies[0].position.x, y: ropeA.bodies[0].position.y },
-//     stiffness: 0.5
-// }));
+  /**
+   * Cause every universe needs ground
+   */
+  get ground() {
+    return Bodies.rectangle(this.width / 2, this.height, this.width, 60, {
+      isStatic: true
+    });
+  }
 
-// create two boxes and a ground
-// const boxA = Bodies.rectangle(400, 200, 80, 80);
-// boxA.label = "boxie";
-// const boxB = Bodies.rectangle(450, 50, 80, 80);
-const ground = Bodies.rectangle(width / 2, height, width, 60, {
-  isStatic: true
-});
+  get matter() {
+    const entity = new Entity(200, 200, 200);
+    return [this.ground, entity.body];
+  }
 
-// add all of the bodies to the world
-const entity = new Entity(200, 200, 200);
-World.add(engine.world, [ground, entity.body]);
+  bang() {
+    this._universe.add(this._engine.world, this.matter);
 
-const collidingEntities = [];
+    Events.on(this._engine, "collisionStart", event =>
+      this.checkCollision(event)
+    );
 
-// add events
-Events.on(engine, "collisionStart", event => {
-  for (const pair of event.pairs) {
-    // TODO :: what's bodyA and what's bodyB? Always top bottom?
-    if (pair.bodyA.label == "entity") {
-      console.log('A')
-      collidingEntities.push(pair.bodyA.self);
+    Events.on(this._engine, "beforeUpdate", event => this.updateEngine(event));
+    Runner.run(this._runner, this._engine);
+    Render.run(this._render);
+  }
+
+  updateEngine(event) {
+    for (const entity of this._entitiesThatWillDoSomething) {
+      entity.doSomething();
     }
-    if (pair.bodyB.label == "entity") {
-      console.log('B')
-      collidingEntities.push(pair.bodyB.self);
+    this._entitiesThatWillDoSomething.length = 0;
+  }
+
+  checkCollision(event) {
+    for (const pair of event.pairs) {
+      // TODO :: what's bodyA and what's bodyB? Always top bottom?
+      if (pair.bodyA.label == "entity") {
+        console.log("A");
+        this._entitiesThatWillDoSomething.push(pair.bodyA.self);
+      }
+      if (pair.bodyB.label == "entity") {
+        console.log("B");
+        this._entitiesThatWillDoSomething.push(pair.bodyB.self);
+      }
     }
   }
-});
+}
 
-Events.on(engine, "beforeUpdate", () => {
-  for (const entity of collidingEntities) {
-    entity.jump();
-  }
-  collidingEntities.length = 0;
-});
-
-// add mouse control
-// var mouse = Mouse.create(render.canvas),
-//   mouseConstraint = MouseConstraint.create(engine, {
-//     mouse,
-//     constraint: {
-//       stiffness: 0.2,
-//       render: {
-//         visible: false
-//       }
-//     }
-//   });
-
-// World.add(engine.world, mouseConstraint);
-
-// // keep the mouse in sync with rendering
-// render.mouse = mouse;
-
-// run the engine
-// Engine.run(engine);
-Runner.run(runner, engine);
-
-// run the renderer
-Render.run(render);
+new Universe();

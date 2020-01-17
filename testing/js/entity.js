@@ -46,7 +46,7 @@ export default class Entity {
     return this._height;
   }
 
-  jump() {
+  doSomething() {
     Body.applyForce(this._body, this._body.position, {
         x: 0,
         y: -0.5
