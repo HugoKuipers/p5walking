@@ -5,6 +5,7 @@ class Walker {
     this.newMutCha = newMutCha
     this.remMutCha = remMutCha
     this.maxFeetSize = 40
+    this.maxLimbLen = 100
     this.x = x
     this.y = y
     this.radius = r
@@ -16,15 +17,34 @@ class Walker {
 
     this.body = Bodies.circle(this.x, this.y, this.radius, { collisionFilter: { group: this.filter }})
     World.add(engine.world, this.body)
-    print(this.body)
+
+    // print(this.body)
 
     for (l of this.limbs) {
-      let footDir = (l.chromR.dir * TWO_PI) * (l.chromR.len * this.radius)
+      let footDir = (l.chromR.dir * TWO_PI)
       let footLoc = createVector(cos(footDir), sin(footDir))
-      let limbBody = Bodies.rectangle(this.x + footLoc.x, this.y + footLoc.y, l.chromR.footSize * this.maxFeetSize, l.chromR.footSize * this.maxFeetSize)
+      footLoc.mult((l.chromR.len * this.maxLimbLen) + this.radius)
+      let limbBody = Bodies.rectangle(this.x + footLoc.x, this.y + footLoc.y, l.chromR.footSize * this.maxFeetSize, l.chromR.footSize * this.maxFeetSize, { collisionFilter: { group: this.filter }})
       this.limbBodies.push(limbBody)
       World.add(engine.world, limbBody)
-      print(limbBody)
+
+      // print(limbBody)
+
+      footLoc.setMag(this.radius/1.5)
+      print(footLoc)
+      let options = {
+        bodyA: this.body,
+        bodyB: limbBody,
+        pointA: Vector.create(footLoc.x, footLoc.y),
+        damping: 0.1,
+        stiffness: 0,
+        angularStiffness: 1
+      }
+      let leg = Constraint.create(options)
+      this.limbConsts.push(leg)
+      World.add(engine.world, leg)
+
+      print(leg)
     }
   }
 
@@ -38,6 +58,10 @@ class Walker {
         vertex(v.x, v.y)
       }
       endShape(CLOSE)
+    }
+
+    for (let l of this.limbConsts) {
+      line(l.bodyA.position.x + l.pointA.x, l.bodyA.position.y + l.pointA.y, l.bodyB.position.x, l.bodyB.position.y)
     }
   }
 

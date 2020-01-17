@@ -1,5 +1,5 @@
 class Ground {
-  constructor(downEdge = width+100, stepLen = 100, steps = 50, slope = 0, slopeChange = 0, elevation = 200) {
+  constructor(downEdge = height+100, stepLen = 100, steps = 50, slope = 0, slopeChange = 0, elevation = 200) {
     this.rightEdge = stepLen*steps
     this.leftEdge = -100
     this.upEdge = -100

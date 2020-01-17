@@ -16,9 +16,13 @@ class Population {
   }
 
   show() {
+    let verste = 0
     for (let w of this.walkers) {
+      if (w.body.position.x > verste) verste = w.body.position.x
       w.show()
     }
+
+    translation.x = (verste * -1) + width/1.5
   }
 
   add(x = random(width), y = random(height)) {
@@ -53,6 +57,7 @@ class Population {
 
     for (let w of this.walkers) {
       w.fitness = w.body.position.x
+      // w.fitness = w.body.position.x * -1
       if (w.fitness < lowFit) lowFit = w.fitness
     }
 
