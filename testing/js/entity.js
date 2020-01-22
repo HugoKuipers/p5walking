@@ -7,6 +7,8 @@ export default class Entity {
     this._width = size;
     this._height = size / 4;
 
+    this._jumps = 10
+
     this._body
   }
 
@@ -46,10 +48,20 @@ export default class Entity {
     return this._height;
   }
 
+  get dead() {
+    return !this._jumps
+  }
+
   doSomething() {
     Body.applyForce(this._body, this._body.position, {
         x: 0,
         y: -0.5
     })
+
+    this._jumps -= 1
+  }
+
+  reproduce() {
+    return new Entity(this._spawnX, this._spawnY, this._width)
   }
 }

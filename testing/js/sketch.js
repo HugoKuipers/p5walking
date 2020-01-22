@@ -27,6 +27,7 @@ class Universe {
   constructor() {
     /**
      * the entities that will do something the next update of the engine
+     * @type {Entity[]}
      * @private
      */
     this._entitiesThatWillDoSomething = [];
@@ -108,8 +109,25 @@ class Universe {
   updateEngine(event) {
     for (const entity of this._entitiesThatWillDoSomething) {
       entity.doSomething();
+      
+      if(entity.dead) this.circleOfLife(entity)
     }
     this._entitiesThatWillDoSomething.length = 0;
+  }
+
+  /**
+   * It's the circle of life
+   * 
+   * From ashes to ashes, from dust to dust
+   * An entity will rise again, in this I'll trust
+   * 
+   * @param {Entity} entity 
+   */
+  circleOfLife(entity) {
+    this._universe.remove(this._engine.world, entity.body)
+
+    const child = entity.reproduce()
+    this._universe.add(this._engine.world, child.body)
   }
 
   checkCollision(event) {
