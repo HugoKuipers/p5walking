@@ -4,11 +4,12 @@ class Walker {
     this.mutCha = mutCha
     this.newMutCha = newMutCha
     this.remMutCha = remMutCha
-    this.maxFeetSize = 40
-    this.maxLimbLen = 100
+    this.maxLimbLen = 120
+    this.maxLimbWidth = 40
     this.x = x
     this.y = y
     this.radius = r
+    this.limbDistFromCenter = this.radius / 1.5
     this.limbs = limbs
     this.col = color(random(255), random(255), random(255), 50)
     this.fitness = 0
@@ -20,31 +21,54 @@ class Walker {
 
     // print(this.body)
 
-    for (l of this.limbs) {
+    for (let l of this.limbs) {
       let footDir = (l.chromR.dir * TWO_PI)
       let footLoc = createVector(cos(footDir), sin(footDir))
-      footLoc.mult((l.chromR.len * this.maxLimbLen) + this.radius)
-      let limbBody = Bodies.rectangle(this.x + footLoc.x, this.y + footLoc.y, l.chromR.footSize * this.maxFeetSize, l.chromR.footSize * this.maxFeetSize, { collisionFilter: { group: this.filter }})
+      footLoc.mult((l.chromR.len * this.maxLimbLen * 0.5) + this.limbDistFromCenter)
+      let limbBody = Bodies.rectangle(this.x + footLoc.x, this.y + footLoc.y, l.chromR.len * this.maxLimbLen, l.chromR.width * this.maxLimbWidth, { collisionFilter: { group: this.filter }})
       this.limbBodies.push(limbBody)
+      Body.rotate(limbBody, l.chromR.dir * TWO_PI)
       World.add(engine.world, limbBody)
 
       // print(limbBody)
 
-      footLoc.setMag(this.radius/1.5)
-      print(footLoc)
+      footLoc.setMag(this.limbDistFromCenter)
+      let loc2 = footLoc.copy()
+      loc2.setMag(l.chromR.len * this.maxLimbLen * -0.5)
+      let footDir2 = (l.chromR.dir * TWO_PI) - (0.5 * PI)
+      let footCorner = createVector(cos(footDir2), sin(footDir2))
+      footCorner.setMag(l.chromR.width * this.maxLimbWidth * 0.5)
+      print(loc2, footCorner)
+      loc2.add(footCorner)
       let options = {
         bodyA: this.body,
         bodyB: limbBody,
         pointA: Vector.create(footLoc.x, footLoc.y),
+        pointB: Vector.create(loc2.x, loc2.y),
         damping: 0.1,
-        stiffness: 0,
+        stiffness: 1,
         angularStiffness: 1
       }
       let leg = Constraint.create(options)
+      
+      let options2 = {
+        bodyA: this.body,
+        bodyB: limbBody,
+        pointA: Vector.create(footLoc.x, footLoc.y),
+        pointB: Vector.create(0,0),
+        damping: 0.1,
+        stiffness: 1,
+        angularStiffness: 1
+      }
+      let leg2 = Constraint.create(options2)
+      
       this.limbConsts.push(leg)
       World.add(engine.world, leg)
-
+      // this.limbConsts.push(leg2)
+      // World.add(engine.world, leg2)
+      
       print(leg)
+      print(leg2)
     }
   }
 
@@ -61,7 +85,7 @@ class Walker {
     }
 
     for (let l of this.limbConsts) {
-      line(l.bodyA.position.x + l.pointA.x, l.bodyA.position.y + l.pointA.y, l.bodyB.position.x, l.bodyB.position.y)
+      line(l.bodyA.position.x + l.pointA.x, l.bodyA.position.y + l.pointA.y, l.bodyB.position.x + l.pointB.x, l.bodyB.position.y + l.pointB.y)
     }
   }
 
@@ -124,8 +148,8 @@ class Walker {
       let chrom = i == 0 ? chromA : chromB
 
       chrom.len = random()
+      chrom.width = random()
       chrom.dir = random()
-      chrom.footSize = random()
       chrom.force = random()
     }
 

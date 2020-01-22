@@ -26,7 +26,7 @@ class Population {
   }
 
   add(x = random(width), y = random(height)) {
-    this.walkers.push(new Walker(x, y, 40, [], this.mutCha))
+    this.walkers.push(new Walker(x, y, this.radius, [], this.mutCha))
   }
 
   repopulate() {
