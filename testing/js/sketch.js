@@ -31,6 +31,7 @@ class Universe {
      * @private
      */
     this._entitiesThatWillDoSomething = [];
+    this._entityCount = 2
 
     /**
      * _width is the width of the universe
@@ -90,8 +91,7 @@ class Universe {
   }
 
   get matter() {
-    const entity = new Entity(200, 200, 200);
-    return [this.ground, entity.body];
+    return [this.ground, ...[...Array(this._entityCount)].map(_ => new Entity(200, 200, 200).body)];
   }
 
   bang() {
