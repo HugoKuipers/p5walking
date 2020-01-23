@@ -56,8 +56,8 @@ class Population {
     let fitSum = 0
 
     for (let w of this.walkers) {
-      w.fitness = w.body.position.x
-      // w.fitness = w.body.position.x * -1
+      // w.fitness = w.body.position.x
+      w.fitness = w.body.position.x * -1
       if (w.fitness < lowFit) lowFit = w.fitness
     }
 

@@ -19,8 +19,8 @@ function setup() {
   engine = Engine.create()
   ground = new Ground(height+100)
   translation = createVector(0,0)
-  // walkers = new Population(100, 0.01, 0.05, 0.01, 400)
-  walkers = new Population(1, 0.01, 1, 0.01, 200)
+  walkers = new Population(100, 0.01, 0.05, 0.01, 400)
+  // walkers = new Population(1, 0.01, 1, 0.01, 200)
 
   Engine.run(engine)
 }
@@ -37,12 +37,12 @@ function draw() {
   push()
   translate(translation)
 
-  // for (let i of walkers.walkers) {
-  //   Body.applyForce(i.body, i.body.position, {
-  //     x: 0.003,
-  //     y: 0
-  //   })
-  // }
+  for (let i of walkers.walkers) {
+    Body.applyForce(i.body, i.body.position, {
+      x: 0.003,
+      y: 0
+    })
+  }
   
   ground.show()
   walkers.show()

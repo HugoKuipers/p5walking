@@ -40,32 +40,37 @@ class Walker {
       footCorner.setMag(l.chromR.width * this.maxLimbWidth * 0.5)
       print(loc2, footCorner)
       loc2.add(footCorner)
+      footLoc.add(footCorner)
+
       let options = {
         bodyA: this.body,
         bodyB: limbBody,
         pointA: Vector.create(footLoc.x, footLoc.y),
         pointB: Vector.create(loc2.x, loc2.y),
         damping: 0.1,
-        stiffness: 1,
-        angularStiffness: 1
+        stiffness: l.chromR.stiffness,
+        angularStiffness: l.chromR.stiffness
       }
       let leg = Constraint.create(options)
       
+      footCorner.mult(-2)
+      loc2.add(footCorner)
+      footLoc.add(footCorner)
       let options2 = {
         bodyA: this.body,
         bodyB: limbBody,
         pointA: Vector.create(footLoc.x, footLoc.y),
-        pointB: Vector.create(0,0),
+        pointB: Vector.create(loc2.x, loc2.y),
         damping: 0.1,
-        stiffness: 1,
-        angularStiffness: 1
+        stiffness: l.chromR.stiffness,
+        angularStiffness: l.chromR.stiffness
       }
       let leg2 = Constraint.create(options2)
       
       this.limbConsts.push(leg)
       World.add(engine.world, leg)
-      // this.limbConsts.push(leg2)
-      // World.add(engine.world, leg2)
+      this.limbConsts.push(leg2)
+      World.add(engine.world, leg2)
       
       print(leg)
       print(leg2)
@@ -151,6 +156,7 @@ class Walker {
       chrom.width = random()
       chrom.dir = random()
       chrom.force = random()
+      chrom.stiffness = random()
     }
 
     let con = floor(random(limbCount))
