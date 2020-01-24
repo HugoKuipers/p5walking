@@ -1,7 +1,7 @@
 class Population {
   constructor(size, mutCha, newMutCha = mutCha, remMutCha = newMutCha, lifespan = 1000) {
-    this.startX = 250
-    this.startY = 200
+    this.startX = 300
+    this.startY = 350
     this.radius = 40
     this.mutCha = mutCha
     this.newMutCha = newMutCha
@@ -34,11 +34,13 @@ class Population {
     let fitSum = this.evaluate()
 
     for (let i = 0; i < this.size; i++) {
-      let selectedWalker = this.selection(fitSum)
-      newDna.push(selectedWalker.reproduce(selectedWalker))
+      let selectedWalkerA = this.selection(fitSum)
+      let selectedWalkerB = this.selection(fitSum)
+      newDna.push(selectedWalkerA.reproduce(selectedWalkerB))
     }
 
-    print('newdna', newDna)
+    // print('newdna', newDna)
+
     for (let w of this.walkers) {
       w.killSelf()
     }
@@ -57,7 +59,8 @@ class Population {
 
     for (let w of this.walkers) {
       // w.fitness = w.body.position.x
-      w.fitness = w.body.position.x * -1
+      // w.fitness = w.body.position.x * -1
+      w.fitness = height - w.body.position.y
       if (w.fitness < lowFit) lowFit = w.fitness
     }
 

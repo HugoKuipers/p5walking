@@ -12,13 +12,15 @@ class Limb {
   replicate(other, mutCha) {
     let mine = (random(2) > 1) ? this.chromB : this.chromA
     let theirs = (random(2) > 1) ? other.chromB : other.chromA
+    let newA = {}
+    let newB = {}
 
     for (let gen in mine) {
       if (random() < mutCha) {
-        mine[gen] = random()
+        newA[gen] = random()
       }
       if (random() < mutCha) {
-        theirs[gen] = random()
+        newB[gen] = random()
       }
     }
 
