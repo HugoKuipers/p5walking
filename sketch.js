@@ -20,8 +20,8 @@ function setup() {
   ground = new Ground(height+100)
   translation = createVector(0,0)
   // walkers = new Population(100, 0.01, 0.05, 0.01, 400)
-  // walkers = new Population(50, 0.005, 0.01, 0.05, 120)
-  walkers = new Population(1, 0.01, 1, 0.1, 200)
+  walkers = new Population(50, 0.005, 0.01, 0.15, 120)
+  // walkers = new Population(1, 0.01, 1, 0.1, 200)
 
   Engine.run(engine)
 }

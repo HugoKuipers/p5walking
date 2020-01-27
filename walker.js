@@ -159,7 +159,8 @@ class Walker {
       chrom.len = random()
       chrom.width = random()
       chrom.dir = random()
-      chrom.force = random()
+      chrom.forceDir = random()
+      chrom.forcePow = random()
       chrom.stiffness = random()
     }
 
