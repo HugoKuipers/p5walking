@@ -1,7 +1,7 @@
 class Population {
-  constructor(size, mutCha, newMutCha = mutCha, remMutCha = newMutCha, lifespan = 1000) {
-    this.startX = 300
-    this.startY = 350
+  constructor(size, mutCha, newMutCha = mutCha, remMutCha = newMutCha, lifespan = 1000, startX = 300, startY = 300) {
+    this.startX = startX
+    this.startY = startY
     this.radius = 40
     this.mutCha = mutCha
     this.newMutCha = newMutCha
@@ -22,11 +22,17 @@ class Population {
       w.show()
     }
 
-    translation.x = (verste * -1) + width/1.5
+    translation.x = (verste * -1) + width/1.2
   }
 
   add(x = random(width), y = random(height)) {
     this.walkers.push(new Walker(x, y, this.radius, [], this.mutCha))
+  }
+
+  applyForce() {
+    for (let w of this.walkers) {
+      w.applyForce()
+    }
   }
 
   repopulate() {

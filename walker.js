@@ -5,7 +5,10 @@ class Walker {
     this.newMutCha = newMutCha
     this.remMutCha = remMutCha
     this.maxLimbLen = 120
+    this.halfLimbLen = this.maxLimbLen / 2
     this.maxLimbWidth = 40
+    this.halfLimbWidth = this.maxLimbWidth / 2
+    this.maxForcePow = 10
     this.x = x
     this.y = y
     this.radius = r
@@ -24,39 +27,64 @@ class Walker {
     for (let l of this.limbs) {
       const chromosome = l.chromR
       const parent = l.con == 0 ? this.body : this.limbBodies[l.con-1]
-      if (parent == undefined) print(this)
+
       let footDir = (chromosome.dir * TWO_PI)
       let footLoc = createVector(cos(footDir), sin(footDir))
-      l.con == 0 ? footLoc.mult((chromosome.len * this.maxLimbLen * 0.5) + this.limbDistFromCenter) : footLoc.mult(chromosome.len * this.maxLimbLen * 0.5)
-      let extraOffset = l.con == 0 ? createVector(0, 0) : createVector(cos(parent.angle), sin(parent.angle))
-      extraOffset.mult(chromosome.len * this.maxLimbLen * 0.5)
-      footLoc.add(extraOffset)
-      let limbBody = Bodies.rectangle(parent.position.x + footLoc.x, parent.position.y + footLoc.y, chromosome.len * this.maxLimbLen, chromosome.width * this.maxLimbWidth, { collisionFilter: { group: this.filter }})
+      let parentOffset
+      let parentOffset2
+      let parentCorner
+      footLoc.mult(chromosome.len * this.halfLimbLen)
+      if (l.con == 0) {
+        parentOffset = createVector(cos(footDir), sin(footDir))
+        parentOffset.mult(this.limbDistFromCenter)
+        let footDir2 = (chromosome.dir * TWO_PI) - (0.5 * PI)
+        parentCorner = createVector(cos(footDir2), sin(footDir2))
+        parentCorner.mult(chromosome.width * this.halfLimbWidth)
+      } else {
+        const parentChrom = this.limbs[l.con-1].chromR
+        parentOffset = createVector(cos(parent.angle), sin(parent.angle))
+        parentOffset.mult(parentChrom.len * this.halfLimbLen)
+        parentOffset2 = parentOffset.copy()
+        parentOffset2.mult(-1)
+        let parentDir2 = (parentChrom.dir * TWO_PI) - (0.5 * PI)
+        parentCorner = createVector(cos(parentDir2), sin(parentDir2))
+        parentCorner.mult(parentChrom.width * this.halfLimbWidth)
+      }
+
+      // create limbBody:
+      let limbBody = Bodies.rectangle(parent.position.x + parentOffset.x, parent.position.y + parentOffset.y, chromosome.len * this.maxLimbLen, chromosome.width * this.maxLimbWidth, { collisionFilter: { group: this.filter }})
       this.limbBodies.push(limbBody)
-      Body.rotate(limbBody, chromosome.dir * TWO_PI)
+      Body.rotate(limbBody, footDir)
+      Body.setPosition(limbBody, { x: limbBody.position.x + footLoc.x, y: limbBody.position.y + footLoc.y })
       World.add(engine.world, limbBody)
 
-      // print(limbBody)
-
-      footLoc.setMag(this.limbDistFromCenter)
-      let loc2 = footLoc.copy()
-      loc2.setMag(chromosome.len * this.maxLimbLen * -0.5)
+      // create vectors to corners:
+      footLoc.setMag(chromosome.len * this.maxLimbLen * -0.5)
       let footDir2 = (chromosome.dir * TWO_PI) - (0.5 * PI)
       let footCorner = createVector(cos(footDir2), sin(footDir2))
-      footCorner.setMag(chromosome.width * this.maxLimbWidth * 0.5)
+      footCorner.mult(chromosome.width * this.maxLimbWidth * 0.5)
 
-      // print(loc2, footCorner)
-
-      this.addJoint(limbBody, footLoc, loc2, chromosome, footCorner)
+      // create Joints:
+      this.addJoint(parent, limbBody, parentOffset, footLoc, chromosome, parentCorner, footCorner)
+      parentCorner.mult(-1)
+      if (l.con != 0) {
+        this.addJoint(parent, limbBody, parentOffset2, footLoc, chromosome, parentCorner)
+      }
       footCorner.mult(-2)
-      this.addJoint(limbBody, footLoc, loc2, chromosome, footCorner)
+      parentCorner.mult(2)
+      this.addJoint(parent, limbBody, parentOffset, footLoc, chromosome, parentCorner, footCorner)
+      if (l.con != 0) {
+        parentCorner.mult(-1)
+        this.addJoint(parent, limbBody, parentOffset2, footLoc, chromosome, parentCorner)
+      }
     }
 
   }
 
-  jointOptions(limbBody, jointPreviousBody, jointLeg, chromosome) {
+  jointOptions(parent, limbBody, jointPreviousBody, jointLeg, chromosome) {
+    print(parent, limbBody, jointPreviousBody, jointLeg, chromosome)
     return {
-      bodyA: this.body,
+      bodyA: parent,
       bodyB: limbBody,
       pointA: Vector.create(jointPreviousBody.x, jointPreviousBody.y),
       pointB: Vector.create(jointLeg.x, jointLeg.y),
@@ -66,14 +94,15 @@ class Walker {
     }
   }
 
-  addJoint(limbBody, jointPreviousBody, jointLeg, chromosome, jointDelta) {
-    jointLeg.add(jointDelta)
-    jointPreviousBody.add(jointDelta)
+  addJoint(parent, limbBody, jointPreviousBody, jointLeg, chromosome, jointDeltaPrev, jointDeltaLeg) {
+    if (jointDeltaLeg) jointLeg.add(jointDeltaLeg)
+    if (jointDeltaPrev) jointPreviousBody.add(jointDeltaPrev)
 
-    let joint = Constraint.create(this.jointOptions(limbBody, jointPreviousBody, jointLeg, chromosome))
+    let joint = Constraint.create(this.jointOptions(parent, limbBody, jointPreviousBody, jointLeg, chromosome))
 
     this.limbConsts.push(joint)
     World.add(engine.world, joint)
+    print(joint)
   }
   
   show() {
@@ -88,8 +117,17 @@ class Walker {
       endShape(CLOSE)
     }
 
-    for (let l of this.limbConsts) {
-      line(l.bodyA.position.x + l.pointA.x, l.bodyA.position.y + l.pointA.y, l.bodyB.position.x + l.pointB.x, l.bodyB.position.y + l.pointB.y)
+    // for (let l of this.limbConsts) {
+    //   line(l.bodyA.position.x + l.pointA.x, l.bodyA.position.y + l.pointA.y, l.bodyB.position.x + l.pointB.x, l.bodyB.position.y + l.pointB.y)
+    // }
+  }
+
+  applyForce() {
+    for (let i = 0; i < this.limbs.length; i++) {
+      const chromosome = this.limbs.chromR
+      let forceDir = chromosome.forceDir * TWO_PI
+      let force = createVector(cos(forceDir), sin(forceDir))
+      force.mult(chromosome.forcePow * this.maxForcePow)
     }
   }
 
