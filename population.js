@@ -22,7 +22,8 @@ class Population {
       w.show()
     }
 
-    translation.x = (verste * -1) + width/1.2
+    translation.x = (verste * -1) + width/1.8
+    // translation.x = (verste * -1) + width/1.2
   }
 
   add(x = random(width), y = random(height)) {

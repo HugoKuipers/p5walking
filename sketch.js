@@ -20,9 +20,9 @@ function setup() {
   ground = new Ground(height+100)
   translation = createVector(0,0)
   // walkers = new Population(100, 0.01, 0.05, 0.01, 400)
-  walkers = new Population(100, 0.01, 0.05, 0.25, 200)
-  walkersBeta = new Population(1, 0.01, 0.01, 0.02, 200, 550)
-  walkersGamma = new Population(1, 0.3, 0.3, 0.7, 200, 800)
+  walkers = new Population(120, 0.005, 0.01, 0.2, 500)
+  // walkersBeta = new Population(1, 0.01, 0.01, 0.02, 200, 550)
+  // walkersGamma = new Population(1, 0.3, 0.3, 0.7, 200, 800)
   // walkers = new Population(1, 0.001, 1, 0.001, 200)
 
   Engine.run(engine)
@@ -37,15 +37,15 @@ function draw() {
     walkers.repopulate()
   }
 
-  walkersBeta.life++
-  if (walkersBeta.life == walkersBeta.lifespan) {
-    walkersBeta.repopulate()
-  }
+  // walkersBeta.life++
+  // if (walkersBeta.life == walkersBeta.lifespan) {
+  //   walkersBeta.repopulate()
+  // }
 
-  walkersGamma.life++
-  if (walkersGamma.life == walkersGamma.lifespan) {
-    walkersGamma.repopulate()
-  }
+  // walkersGamma.life++
+  // if (walkersGamma.life == walkersGamma.lifespan) {
+  //   walkersGamma.repopulate()
+  // }
 
   push()
   translate(translation)
@@ -59,8 +59,8 @@ function draw() {
   
   ground.show()
   walkers.show()
-  walkersBeta.show()
-  walkersGamma.show()
+  // walkersBeta.show()
+  // walkersGamma.show()
 
   pop()
 }
