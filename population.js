@@ -10,20 +10,34 @@ class Population {
     this.lifespan = lifespan
     this.life = 0
     this.walkers = []
+    this.currentBest = undefined
     for (let i = 0; i < size; i++) {
       this.walkers.push(new Walker(this.startX, this.startY, this.radius, [], mutCha, newMutCha, remMutCha))
     }
   }
 
   show() {
+    // let verste = 9999
     let verste = 0
     for (let w of this.walkers) {
-      if (w.body.position.x > verste) verste = w.body.position.x
+      if (w.body.position.x > verste) {
+        verste = w.body.position.x
+        this.currentBest = w
+      }
+
+      // if (w.body.position.y < verste) {
+      //   verste = w.body.position.y
+      //   this.currentBest = w
+      // }
+
       w.show()
     }
 
-    translation.x = (verste * -1) + width/1.8
+    // translation.x = (verste * -1) + width/1.8
+    translation.x = (verste * -1) + width/1.5
     // translation.x = (verste * -1) + width/1.2
+
+    this.currentBest.show(true)
   }
 
   add(x = random(width), y = random(height)) {
@@ -31,9 +45,19 @@ class Population {
   }
 
   applyForce() {
+    // console.time('apply force to population')
     for (let w of this.walkers) {
       w.applyForce()
     }
+    // console.timeEnd('apply force to population')
+  }
+
+  resetForce() {
+    // console.time('reset population')
+    for (let w of this.walkers) {
+      w.resetForce()
+    }
+    // console.timeEnd('reset population')
   }
 
   repopulate() {
@@ -47,13 +71,28 @@ class Population {
     }
 
     // print('newdna', newDna)
-
     for (let w of this.walkers) {
       w.killSelf()
     }
+
     this.walkers = []
 
     for (let n of newDna) {
+      this.walkers.push(new Walker(this.startX, this.startY, this.radius, n, this.mutCha, this.newMutCha, this.remMutCha))
+    }
+
+    this.life = 0
+  }
+
+  repopulateWithClone(clonedDNA) {
+    for (let w of this.walkers) {
+      w.killSelf()
+    }
+
+    this.walkers = []
+
+    for (let n of clonedDNA) {
+      print(n)
       this.walkers.push(new Walker(this.startX, this.startY, this.radius, n, this.mutCha, this.newMutCha, this.remMutCha))
     }
 
@@ -65,9 +104,7 @@ class Population {
     let fitSum = 0
 
     for (let w of this.walkers) {
-      // w.fitness = w.body.position.x
-      // w.fitness = w.body.position.x * -1
-      w.fitness = height - w.body.position.y
+      w.fitness = w.body.position.x + (height - w.body.position.y)
       if (w.fitness < lowFit) lowFit = w.fitness
     }
 
@@ -91,6 +128,14 @@ class Population {
     }
 
     return this.walkers[i]
+  }
+
+  saveDNA() {
+    let cloned = []
+    for (const w of this.walkers) {
+      cloned.push(w.limbs)
+    }
+    localStorage.setItem('clonedDNA', JSON.stringify(cloned))
   }
 }
   

@@ -8,18 +8,23 @@ class Walker {
     this.halfLimbLen = this.maxLimbLen / 2
     this.maxLimbWidth = 40
     this.halfLimbWidth = this.maxLimbWidth / 2
-    this.maxForcePow = 10
+    this.constsPerLimb = 4
+    this.maxContraction = 0.03
+    this.friction = 0.1
     this.x = x
     this.y = y
     this.radius = r
     this.limbDistFromCenter = this.radius / 1.5
     this.limbs = limbs
-    this.col = color(random(255), random(255), random(255), 50)
+    this.r = random(255)
+    this.g = random(255)
+    this.b = random(255)
     this.fitness = 0
     this.limbBodies = []
     this.limbConsts = []
 
-    this.body = Bodies.circle(this.x, this.y, this.radius, { collisionFilter: { group: this.filter }})
+    // this.body = Bodies.circle(this.x, this.y, this.radius, { friction: this.friction, collisionFilter: { group: this.filter }})
+    this.body = Bodies.rectangle(this.x, this.y, this.radius*2, this.radius*2, { friction: this.friction, collisionFilter: { group: this.filter }})
     World.add(engine.world, this.body)
 
     // print(this.body)
@@ -40,6 +45,7 @@ class Walker {
         let footDir2 = (chromosome.dir * TWO_PI) - (0.5 * PI)
         parentCorner = createVector(cos(footDir2), sin(footDir2))
         parentCorner.mult(chromosome.width * this.halfLimbWidth)
+        parentOffset2 = createVector(0,0)
       } else {
         const parentChrom = this.limbs[l.con-1].chromR
         parentOffset = createVector(cos(parent.angle), sin(parent.angle))
@@ -52,7 +58,7 @@ class Walker {
       }
 
       // create limbBody:
-      let limbBody = Bodies.rectangle(parent.position.x + parentOffset.x, parent.position.y + parentOffset.y, chromosome.len * this.maxLimbLen, chromosome.width * this.maxLimbWidth, { collisionFilter: { group: this.filter }})
+      let limbBody = Bodies.rectangle(parent.position.x + parentOffset.x, parent.position.y + parentOffset.y, chromosome.len * this.maxLimbLen, chromosome.width * this.maxLimbWidth, { friction: chromosome.friction, collisionFilter: { group: this.filter }})
       this.limbBodies.push(limbBody)
       Body.rotate(limbBody, footDir)
       Body.setPosition(limbBody, { x: limbBody.position.x + footLoc.x, y: limbBody.position.y + footLoc.y })
@@ -67,22 +73,16 @@ class Walker {
       // create Joints:
       this.addJoint(parent, limbBody, parentOffset, footLoc, chromosome, parentCorner, footCorner)
       parentCorner.mult(-1)
-      if (l.con != 0) {
-        this.addJoint(parent, limbBody, parentOffset2, footLoc, chromosome, parentCorner)
-      }
+      this.addJoint(parent, limbBody, parentOffset2, footLoc, chromosome, parentCorner)
       footCorner.mult(-2)
       parentCorner.mult(2)
       this.addJoint(parent, limbBody, parentOffset, footLoc, chromosome, parentCorner, footCorner)
-      if (l.con != 0) {
-        parentCorner.mult(-1)
-        this.addJoint(parent, limbBody, parentOffset2, footLoc, chromosome, parentCorner)
-      }
+      parentCorner.mult(-1)
+      this.addJoint(parent, limbBody, parentOffset2, footLoc, chromosome, parentCorner)
     }
-
   }
 
   jointOptions(parent, limbBody, jointPreviousBody, jointLeg, chromosome) {
-    print(parent, limbBody, jointPreviousBody, jointLeg, chromosome)
     return {
       bodyA: parent,
       bodyB: limbBody,
@@ -99,15 +99,26 @@ class Walker {
     if (jointDeltaPrev) jointPreviousBody.add(jointDeltaPrev)
 
     let joint = Constraint.create(this.jointOptions(parent, limbBody, jointPreviousBody, jointLeg, chromosome))
+    joint.lengths = [joint.length]
 
     this.limbConsts.push(joint)
     World.add(engine.world, joint)
-    print(joint)
   }
   
-  show() {
-    fill(this.col)
-    ellipse(this.body.position.x, this.body.position.y, this.radius*2)
+  show(best = false) {
+    push()
+    fill(this.r, this.g, this.b, 50)
+    if (best) {
+      strokeWeight(2)
+      fill(this.r, this.g, this.b, 250)
+    }
+
+    // ellipse(this.body.position.x, this.body.position.y, this.radius*2)
+    beginShape()
+    for (let v of this.body.vertices) {
+      vertex(v.x, v.y)
+    }
+    endShape(CLOSE)
 
     for (let l of this.limbBodies) {      
       beginShape()
@@ -120,14 +131,49 @@ class Walker {
     // for (let l of this.limbConsts) {
     //   line(l.bodyA.position.x + l.pointA.x, l.bodyA.position.y + l.pointA.y, l.bodyB.position.x + l.pointB.x, l.bodyB.position.y + l.pointB.y)
     // }
+    pop()
   }
 
   applyForce() {
     for (let i = 0; i < this.limbs.length; i++) {
-      const chromosome = this.limbs.chromR
-      let forceDir = chromosome.forceDir * TWO_PI
-      let force = createVector(cos(forceDir), sin(forceDir))
-      force.mult(chromosome.forcePow * this.maxForcePow)
+      const chromosome = this.limbs[i].chromR
+      for (let j = 0; j < 2; j++) {
+        let tg
+        let cf
+        if (j == 0) {
+          tg = chromosome.targetConst1
+          cf = chromosome.contractionForce1
+        } else if (j == 1) {
+          tg = chromosome.targetConst2
+          cf = chromosome.contractionForce2
+        // } else {
+        //   tg = chromosome.targetConst3
+        //   cf = chromosome.contractionForce3
+        }
+        let constraint = this.limbConsts[floor(4 * tg) + i * 4]
+        let newLen = (1 - (cf * this.maxContraction)) * constraint.lengths[constraint.lengths.length-1]
+        constraint.lengths.push(newLen)
+        constraint.length = newLen
+      }
+    }
+  }
+
+  resetForce() {
+    for (let i = 0; i < this.limbs.length; i++) {
+      const chromosome = this.limbs[i].chromR
+      for (let j = 0; j < 2; j++) {
+        let tg
+        if (j == 0) {
+          tg = chromosome.targetConst1
+        } else if (j == 1) {
+          tg = chromosome.targetConst2
+        // } else {
+        //   tg = chromosome.targetConst3
+        }
+        let constraint = this.limbConsts[floor(4 * tg) + i * 4]
+        constraint.length = constraint.lengths[constraint.lengths.length-2]
+        constraint.lengths.splice(constraint.lengths.length-1, 1)
+      }
     }
   }
 
@@ -152,25 +198,33 @@ class Walker {
       newLimbs.push(most[i].replicate(oth, this.mutCha))
     }
 
-    if (random() < this.remMutCha) {
-      let cut = floor(random(newLimbs.length))
-      let toCut = this.cutLimb(newLimbs,cut)
+    while (true) {
+      if (random() < this.remMutCha) {
+        let cut = floor(random(newLimbs.length))
+        let toCut = this.cutLimb(newLimbs,cut)
 
-      for (let i = 0; i < newLimbs.length; i++) {
-        let detract = 0
-        for (let j = 0; j < toCut.length; j++) {
-          if (toCut[j] < newLimbs[i].con) detract++
+        for (let i = 0; i < newLimbs.length; i++) {
+          let detract = 0
+          for (let j = 0; j < toCut.length; j++) {
+            if (toCut[j] < newLimbs[i].con) detract++
+          }
+          newLimbs[i].con -= detract
         }
-        newLimbs[i].con -= detract
-      }
 
-      for (let i = newLimbs.length-1; i >= 0; i--) {
-        if (toCut.includes(i)) newLimbs.splice(i, 1)
+        for (let i = newLimbs.length-1; i >= 0; i--) {
+          if (toCut.includes(i)) newLimbs.splice(i, 1)
+        }
+      } else {
+        break
       }
     }
 
-    if (random() < this.newMutCha) {
-      newLimbs.push(this.newLimb(newLimbs.length))
+    while (newLimbs.length < 11) {
+      if (random() < this.newMutCha) {
+        newLimbs.push(this.newLimb(newLimbs.length))
+      } else {
+        break
+      }
     }
 
     return newLimbs
@@ -197,9 +251,14 @@ class Walker {
       chrom.len = random()
       chrom.width = random()
       chrom.dir = random()
-      chrom.forceDir = random()
-      chrom.forcePow = random()
       chrom.stiffness = random()
+      chrom.friction = 0.1
+      chrom.targetConst1 = random()
+      chrom.contractionForce1 = random()
+      chrom.targetConst2 = random()
+      chrom.contractionForce2 = random()
+      // chrom.targetConst3 = random()
+      // chrom.contractionForce3 = random()
     }
 
     let con = floor(random(limbCount+1))

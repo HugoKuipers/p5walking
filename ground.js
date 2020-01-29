@@ -15,7 +15,14 @@ class Ground {
     let curPoint = Vector.create(0, this.downEdge-this.elevation)
     for (let i = 0; i < 50; i++) {
       curPoint.x += this.stepLen
+      // curPoint.y += floor(random(this.slope*2 + 1)) - this.slope
+      // if (curPoint.y > elevation) {
+      //   curPoint.y = elevation
+      // } else if (curPoint.y < elevation * -1) {
+      //   curPoint.y = elevation * -1
+      // }
       this.vertices.push(Vector.clone(curPoint))
+      this.slope += this.slopeChange
     }
 
     this.vertices.push(Vector.create(this.rightEdge, this.downEdge))
@@ -25,6 +32,7 @@ class Ground {
 
     this.body = Bodies.fromVertices(this.rightEdge / 4, this.downEdge / 1.5, this.vertices, { isStatic: true })
     World.add(engine.world, this.body)
+    // print(this)
   }
 
   show() {

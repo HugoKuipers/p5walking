@@ -4,6 +4,7 @@ let translation
 let ground
 let walkers
 let stop = false
+let contractionRate
 
 // module aliases
 let Engine = Matter.Engine,
@@ -17,20 +18,35 @@ function setup() {
   createCanvas(1000, 600)
 
   engine = Engine.create()
-  ground = new Ground(height+100)
+  ground = new Ground(height+100, 100, 50, 5, 1)
   translation = createVector(0,0)
+  contractionRate = 40
+
   // walkers = new Population(100, 0.01, 0.05, 0.01, 400)
-  walkers = new Population(120, 0.005, 0.01, 0.2, 500)
+  walkers = new Population(10, 0.2, 0.1, 0.3, 1000)
   // walkersBeta = new Population(1, 0.01, 0.01, 0.02, 200, 550)
   // walkersGamma = new Population(1, 0.3, 0.3, 0.7, 200, 800)
-  // walkers = new Population(1, 0.001, 1, 0.001, 200)
+  // walkers = new Population(1, 0.001, 0.9, 0.001, 200)
 
   Engine.run(engine)
 }
 
 function draw() {
-  if (stop) noLoop()
-  background(200,200,250)
+  // console.time('draw loop')
+  if (stop) {
+    noLoop()
+    // walkers.applyForce()
+  } else {
+    // walkers.resetForce()
+  }
+  
+  if (walkers.life % contractionRate >= contractionRate / 2) {
+    walkers.resetForce()
+  } else {
+    walkers.applyForce()
+  }
+  
+  background(230,230,255)
 
   walkers.life++
   if (walkers.life == walkers.lifespan) {
@@ -63,6 +79,7 @@ function draw() {
   // walkersGamma.show()
 
   pop()
+  // console.timeEnd('draw loop')
 }
 
 
@@ -94,4 +111,16 @@ function mouseDragged() {
   // }
   // walkers.add(mouseX, mouseY)
   // walkers.evaluate()
+}
+
+
+function keyPressed() {
+  if (keyCode == 83) {
+    walkers.saveDNA()
+  }
+
+  if (keyCode == 87) {
+    print(localStorage.getItem('clonedDNA'))
+    walkers.repopulateWithClone(JSON.parse(localStorage.getItem('clonedDNA')))
+  }
 }
