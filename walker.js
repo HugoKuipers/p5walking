@@ -10,6 +10,7 @@ class Walker {
     this.halfLimbWidth = this.maxLimbWidth / 2
     this.constsPerLimb = 4
     this.maxContraction = 0.03
+    this.maxContractionRate = 30
     this.friction = 0.1
     this.x = x
     this.y = y
@@ -26,8 +27,6 @@ class Walker {
     // this.body = Bodies.circle(this.x, this.y, this.radius, { friction: this.friction, collisionFilter: { group: this.filter }})
     this.body = Bodies.rectangle(this.x, this.y, this.radius*2, this.radius*2, { friction: this.friction, collisionFilter: { group: this.filter }})
     World.add(engine.world, this.body)
-
-    // print(this.body)
 
     for (let l of this.limbs) {
       const chromosome = l.chromR
@@ -134,47 +133,45 @@ class Walker {
     pop()
   }
 
-  applyForce() {
+  contract(time) {
     for (let i = 0; i < this.limbs.length; i++) {
       const chromosome = this.limbs[i].chromR
+      let prevLimb = 5
       for (let j = 0; j < 2; j++) {
         let tg
         let cf
+        let cr
         if (j == 0) {
-          tg = chromosome.targetConst1
+          tg = floor(4 * chromosome.targetConst1)
+          prevLimb = tg
           cf = chromosome.contractionForce1
+          cr = ceil(chromosome.contractionRate1 * this.maxContractionRate)
         } else if (j == 1) {
-          tg = chromosome.targetConst2
+          tg = floor(4 * chromosome.targetConst2)
+          if (prevLimb == tg) tg = (tg + 1) % 4
           cf = chromosome.contractionForce2
-        // } else {
-        //   tg = chromosome.targetConst3
-        //   cf = chromosome.contractionForce3
+          cr = ceil(chromosome.contractionRate2 * this.maxContractionRate)
         }
-        let constraint = this.limbConsts[floor(4 * tg) + i * 4]
-        let newLen = (1 - (cf * this.maxContraction)) * constraint.lengths[constraint.lengths.length-1]
-        constraint.lengths.push(newLen)
-        constraint.length = newLen
+        if (time % (cr*2) >= cr) {
+          this.resetForce(i, tg)
+        } else {
+          this.applyForce(i, tg, cf)
+        }
       }
     }
   }
 
-  resetForce() {
-    for (let i = 0; i < this.limbs.length; i++) {
-      const chromosome = this.limbs[i].chromR
-      for (let j = 0; j < 2; j++) {
-        let tg
-        if (j == 0) {
-          tg = chromosome.targetConst1
-        } else if (j == 1) {
-          tg = chromosome.targetConst2
-        // } else {
-        //   tg = chromosome.targetConst3
-        }
-        let constraint = this.limbConsts[floor(4 * tg) + i * 4]
-        constraint.length = constraint.lengths[constraint.lengths.length-2]
-        constraint.lengths.splice(constraint.lengths.length-1, 1)
-      }
-    }
+  applyForce(i, tg, cf) {
+    let constraint = this.limbConsts[tg + i * 4]
+    let newLen = (1 - (cf * this.maxContraction)) * constraint.lengths[constraint.lengths.length-1]
+    constraint.lengths.push(newLen)
+    constraint.length = newLen
+  }
+
+  resetForce(i, tg) {
+    let constraint = this.limbConsts[tg + i * 4]
+    constraint.length = constraint.lengths[constraint.lengths.length-2]
+    constraint.lengths.splice(constraint.lengths.length-1, 1)
   }
 
   killSelf() {
@@ -255,10 +252,10 @@ class Walker {
       chrom.friction = 0.1
       chrom.targetConst1 = random()
       chrom.contractionForce1 = random()
+      chrom.contractionRate1 = random()
       chrom.targetConst2 = random()
       chrom.contractionForce2 = random()
-      // chrom.targetConst3 = random()
-      // chrom.contractionForce3 = random()
+      chrom.contractionRate2 = random()
     }
 
     let con = floor(random(limbCount+1))

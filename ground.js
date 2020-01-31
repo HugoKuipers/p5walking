@@ -13,14 +13,14 @@ class Ground {
     this.col = color(100)
 
     let curPoint = Vector.create(0, this.downEdge-this.elevation)
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < this.steps; i++) {
       curPoint.x += this.stepLen
-      // curPoint.y += floor(random(this.slope*2 + 1)) - this.slope
-      // if (curPoint.y > elevation) {
-      //   curPoint.y = elevation
-      // } else if (curPoint.y < elevation * -1) {
-      //   curPoint.y = elevation * -1
-      // }
+      curPoint.y += floor(random(this.slope*2 + 1)) - this.slope
+      if (curPoint.y > this.downEdge) {
+        curPoint.y = this.downEdge
+      } else if (curPoint.y < this.downEdge - 2 * this.elevation) {
+        curPoint.y = this.downEdge - 2 * this.elevation
+      }
       this.vertices.push(Vector.clone(curPoint))
       this.slope += this.slopeChange
     }
@@ -30,16 +30,18 @@ class Ground {
     this.vertices.push(Vector.create(this.leftEdge, this.upEdge))
     this.vertices.push(Vector.create(this.stepLen, this.upEdge))
 
-    this.body = Bodies.fromVertices(this.rightEdge / 4, this.downEdge / 1.5, this.vertices, { isStatic: true })
+
+    let thisPos = Matter.Vertices.centre(this.vertices)
+    this.body = Bodies.fromVertices(thisPos.x / 1.5, thisPos.y, this.vertices, { isStatic: true })
     World.add(engine.world, this.body)
-    // print(this)
   }
 
   show() {
     fill(this.col)
     stroke(this.col)
-    for (let part of this.body.parts) {
-      if (part.id == 3) continue
+    for (let i = 1; i < this.body.parts.length; i++) {
+      let part = this.body.parts[i]
+      if (part.id == this.body.parts.length) continue
       beginShape()
       for (const v of part.vertices) {
         vertex(v.x, v.y)

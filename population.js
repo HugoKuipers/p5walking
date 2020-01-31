@@ -14,30 +14,21 @@ class Population {
     for (let i = 0; i < size; i++) {
       this.walkers.push(new Walker(this.startX, this.startY, this.radius, [], mutCha, newMutCha, remMutCha))
     }
+    this.power = 0
   }
 
   show() {
-    // let verste = 9999
     let verste = 0
     for (let w of this.walkers) {
       if (w.body.position.x > verste) {
         verste = w.body.position.x
         this.currentBest = w
       }
-
-      // if (w.body.position.y < verste) {
-      //   verste = w.body.position.y
-      //   this.currentBest = w
-      // }
-
       w.show()
     }
 
-    // translation.x = (verste * -1) + width/1.8
-    translation.x = (verste * -1) + width/1.5
-    // translation.x = (verste * -1) + width/1.2
-
     this.currentBest.show(true)
+    return verste
   }
 
   add(x = random(width), y = random(height)) {
@@ -45,19 +36,9 @@ class Population {
   }
 
   applyForce() {
-    // console.time('apply force to population')
     for (let w of this.walkers) {
-      w.applyForce()
+      w.contract(this.life)
     }
-    // console.timeEnd('apply force to population')
-  }
-
-  resetForce() {
-    // console.time('reset population')
-    for (let w of this.walkers) {
-      w.resetForce()
-    }
-    // console.timeEnd('reset population')
   }
 
   repopulate() {
