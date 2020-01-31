@@ -24,7 +24,7 @@ function setup() {
 
   // walkers = new Population(100, 0.01, 0.05, 0.01, 400)
   walkers = new Population(10, 0.2, 0.1, 0.3, 1000)
-  // walkersBeta = new Population(1, 0.01, 0.01, 0.02, 200, 550)
+  walkersBeta = new Population(10, 0.3, 0.2, 0.3, 1000, 400)
   // walkersGamma = new Population(1, 0.3, 0.3, 0.7, 200, 800)
   // walkers = new Population(1, 0.001, 0.9, 0.001, 200)
 
@@ -42,8 +42,10 @@ function draw() {
   
   if (walkers.life % contractionRate >= contractionRate / 2) {
     walkers.resetForce()
+    walkersBeta.resetForce()
   } else {
     walkers.applyForce()
+    walkersBeta.applyForce()
   }
   
   background(230,230,255)
@@ -53,10 +55,10 @@ function draw() {
     walkers.repopulate()
   }
 
-  // walkersBeta.life++
-  // if (walkersBeta.life == walkersBeta.lifespan) {
-  //   walkersBeta.repopulate()
-  // }
+  walkersBeta.life++
+  if (walkersBeta.life == walkersBeta.lifespan) {
+    walkersBeta.repopulate()
+  }
 
   // walkersGamma.life++
   // if (walkersGamma.life == walkersGamma.lifespan) {
@@ -75,7 +77,7 @@ function draw() {
   
   ground.show()
   walkers.show()
-  // walkersBeta.show()
+  walkersBeta.show()
   // walkersGamma.show()
 
   pop()
